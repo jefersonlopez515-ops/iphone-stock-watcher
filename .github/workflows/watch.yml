@@ -1,0 +1,30 @@
+name: Vigilar iPhone
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # arranca cada 30 min; cada corrida vigila 55 min
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "Solo prueba (una revisión + notificación de prueba)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: vigilante-iphone
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vigilar
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          APPLE_PART: ${{ vars.APPLE_PART }}
+          APPLE_STORES: ${{ vars.APPLE_STORES }}
+          CHECK_EVERY_SECONDS: "60"
+          RUN_MINUTES: "55"
+        run: python3 watcher.py ${{ inputs.test && '--test' || '' }}
